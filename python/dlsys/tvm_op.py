@@ -150,15 +150,14 @@ def make_matrix_softmax(shape, tgt, tgt_host, func_name, dtype="float32"):
         softmax(x)= e_x / e_x.sum()
     """
     X = tvm.placeholder(shape, dtype=dtype, name='X')
-    x_j_1 = tvm.reduce_axis((0, shape[0]), name='x_j_1')
+    x_j_1 = tvm.reduce_axis((0, shape[1]), name='x_j_1')
     max_x = tvm.compute((shape[0],), lambda i: tvm.max(X[i, x_j_1], axis=x_j_1), name = 'max_x')
     e_x = tvm.compute(shape, lambda i, j: tvm.exp(X[i, j] - max_x[i]), name='e_x')
-    x_j_2 = tvm.reduce_axis((0, shape[0]), name='x_j_2')
-    sum_x = tvm.compute((shape[0],), lambda i: tvm.sum(X[i, x_j_2], axis=x_j_2), name = 'sum_x')
-    Y = tvm.compute(shape, lambda i, j: e_x[i, j] / sum_x[i], name='Y')
+    x_j_2 = tvm.reduce_axis((0, shape[1]), name='x_j_2')
+    sum_e_x = tvm.compute((shape[0],), lambda i: tvm.sum(e_x[i, x_j_2], axis=x_j_2), name = 'sum_e_x')
+    Y = tvm.compute(shape, lambda i, j: e_x[i, j] / sum_e_x[i], name='Y')
 
     s = tvm.create_schedule(Y.op)
-    print(tvm.lower(s, [X, max_x, e_x, sum_x, Y], simple_mode=True))
     f = tvm.build(s, [X, Y], tgt, target_host=tgt_host, name=func_name)
     return f
 

@@ -219,7 +219,7 @@ def test_softmax():
     matrix_softmax = tvm_op.make_matrix_softmax(shape, tgt, tgt_host, "matrix_softmax")
     matrix_softmax(arr_x, arr_y)
     y = arr_y.asnumpy()
-    np.testing.assert_allclose(autodiff.softmax_func(x), y, rtol=1e-3)
+    np.testing.assert_allclose(autodiff.softmax_func(x), y, rtol=1e-5)
 
 
 def test_softmax_cross_entropy():
